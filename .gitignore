@@ -93,3 +93,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Config files for bot
+config.py
