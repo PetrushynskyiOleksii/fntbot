@@ -1,5 +1,6 @@
 """Telegram bot."""
 
+import locale
 from datetime import datetime, timedelta
 
 from telebot import TeleBot, types
@@ -9,6 +10,7 @@ from parser import get_films_data
 
 bot = TeleBot(token)
 film_dict = {}
+locale.setlocale(locale.LC_ALL, '')
 
 
 class FilmSession:
@@ -43,6 +45,7 @@ def process_cinema_step(message):
     """Create film object, update cinema field of created object."""
     film = FilmSession()
     days = []
+
     for i in range(1, 4):
         day = film.today + timedelta(days=1 + i)
         days.append(day.strftime('%d.%m, %a'))
