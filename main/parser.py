@@ -2,31 +2,27 @@
 
 import requests
 from datetime import datetime
+
 from bs4 import BeautifulSoup
 
 
-def get_description(response):
-    """Return description of film."""
-    soup = BeautifulSoup(response.text, 'lxml')
+def get_description(url):
+    """Return description of film by parsing website=`url`."""
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
     desc_div = soup.find('div', class_='movie-page-block__desc')
     description = desc_div.find('p').text.strip()
 
     return description
 
 
-def get_sessions(response, date):
-    """Return information about sessions at `date`."""
+def get_sessions(soup, day, id):
+    """Return list of available sessions at date=`day` for film with id=`id`."""
     sessions = []
-    soup = BeautifulSoup(response.text, 'lxml')
-    days_div = soup.find_all('div', class_='showtimes-row')
-
-    for div in days_div:
-        day_str = div.find('span', class_='date').text
-        day_int = int(day_str.split()[0])
-
-        if int(date.day) == day_int:
-            for session in div.find_all('a', class_='time'):
-                sessions.append(session.text.strip())
+    day_data = soup.find('day', attrs={'date': day.strftime('%Y-%m-%d')})
+    for movie in day_data.find_all('show', attrs={'movie-id': id}):
+        if movie.get('order-url'):
+            sessions.append(movie.get('time'))
 
     return sessions
 
@@ -44,11 +40,10 @@ def get_films_data(film):
                 and film.period <= datetime.strptime(end, '%Y-%m-%d'):
             title = movie.find('title').text
             url = movie.get('url')
-            response = requests.get(url)
-
-            sessions = get_sessions(response, film.period)
+            id = movie.get('id')
+            sessions = get_sessions(soup, film.period, id)
             if sessions:
-                description = get_description(response)
+                description = get_description(url)
                 movies[title] = {'url': url,
                                  'description': description,
                                  'sessions': sessions}
