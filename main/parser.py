@@ -22,9 +22,11 @@ def get_sessions(soup, day, id):
     day_data = soup.find('day', attrs={'date': day.strftime('%Y-%m-%d')})
     for movie in day_data.find_all('show', attrs={'movie-id': id}):
         if movie.get('order-url'):
-            sessions.append(movie.get('time'))
+            session = '{time} ({technology})'.format(time=movie.get('time'),
+                                                     technology=movie.get('technology'))
+            sessions.append(session)
 
-    return sessions
+    return sorted(sessions)
 
 
 def get_films_data(film):
@@ -32,7 +34,6 @@ def get_films_data(film):
     movies = {}
     response = requests.get(film.cinema)
     soup = BeautifulSoup(response.text, 'lxml')
-
     for movie in soup.find_all('movie'):
         start = movie.find('dt-start').text
         end = movie.find('dt-end').text
