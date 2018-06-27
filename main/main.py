@@ -87,6 +87,7 @@ def process_days_step(message):
 
         bot.send_chat_action(chat_id, 'typing')
         data = get_films_data(film)
+
         for key, value in data.items():
             title = key
             url = '{}{}'.format(value.get('url'), '#imax_cinetech_2d_3d_4dx_week')
@@ -98,6 +99,11 @@ def process_days_step(message):
                          ' {}.\n{}'.format(title, description, sessions, url)
 
             bot.send_message(message.from_user.id, formed_msg)
+
+        hide_markup = types.ReplyKeyboardRemove()
+        bot.send_message(message.from_user.id,
+                         '\U0001F3A5 Гарного перегляду!',
+                         reply_markup=hide_markup)
 
     except Exception as e:
         print(e)
