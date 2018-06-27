@@ -2,12 +2,14 @@
 
 import locale
 import re
+from time import sleep
 from datetime import datetime, timedelta
 
 from telebot import TeleBot, types
 
 from config import token, cinema_dict
 from parser import get_films_data
+from logger import log_request_messages, log_uncorrect_messages
 
 bot = TeleBot(token)
 film_dict = {}
@@ -72,8 +74,10 @@ def handle_film_request(message):
         send_session_data(message.chat.id, session_data)
         bot.send_message(message.from_user.id,
                          '\U0001F3A5 Гарного перегляду!')
+        log_request_messages(message.from_user, film)
     else:
         bot.send_message(message.from_user.id, result.get('error_message'))
+        log_uncorrect_messages(message.from_user, message.text)
 
 
 @bot.message_handler(content_types=['text'])
@@ -82,6 +86,7 @@ def handle_atypical_text_messages(message):
     bot.send_message(message.from_user.id,
                      'Я не твій кєнт і не розбираюсь у твоєму сленгу. '
                      'Пиши на моїй мові! Для детальної інформації черкани /help .')
+    log_uncorrect_messages(message.from_user, message.text)
 
 
 def process_cinema_step(message):
@@ -92,31 +97,30 @@ def process_cinema_step(message):
         day = film.today + timedelta(days=1 + i)
         days.append(day.strftime('%d.%m, %a'))
 
-    try:
-        chat_id = message.chat.id
-        film_dict[chat_id] = film
-        film.cinema = cinema_dict[message.text]
+    chat_id = message.chat.id
+    film_dict[chat_id] = film
+    film.cinema = cinema_dict[message.text]
 
+    try:
         markup_days = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         markup_days.row('Сьогодні', 'Завтра')
         markup_days.row(days[0], days[1], days[2])
-        msg = bot.send_message(message.from_user.id,
-                               'А тепер день:  \U00002935',
-                               reply_markup=markup_days)
-        bot.register_next_step_handler(msg, process_days_step)
-
     except Exception as e:
-        print(e)
+        log_uncorrect_messages(message.from_user, 'EXC: cinema step')
         hide_markup = types.ReplyKeyboardRemove()
         bot.reply_to(message, 'Упс..Щось пішло не так. Cпробуй ще раз (/start).', reply_markup=hide_markup)
+
+    msg = bot.send_message(message.from_user.id,
+                           'А тепер день:  \U00002935',
+                           reply_markup=markup_days)
+    bot.register_next_step_handler(msg, process_days_step)
 
 
 def process_days_step(message):
     """Update period field of film object with given data."""
+    chat_id = message.chat.id
+    film = film_dict[chat_id]
     try:
-        chat_id = message.chat.id
-        film = film_dict[chat_id]
-
         if message.text == 'Сьогодні':
             film.period = film.today
         elif message.text == 'Завтра':
@@ -126,29 +130,19 @@ def process_days_step(message):
             film.period = datetime(film.today.year, int(month), int(day))
 
         bot.send_chat_action(chat_id, 'typing')
-        data = get_films_data(film)
-
-        for key, value in data.items():
-            title = key
-            url = '{}{}'.format(value.get('url'), '#imax_cinetech_2d_3d_4dx_week')
-            sessions = ', '.join(value.get('sessions'))
-            description = value.get('description')
-
-            formed_msg = '\U0001F538{}.\n{}\n' \
-                         '\U0001F538Доступні сесії:' \
-                         ' {}.\n{}'.format(title, description, sessions, url)
-
-            bot.send_message(message.from_user.id, formed_msg)
-
-        hide_markup = types.ReplyKeyboardRemove()
-        bot.send_message(message.from_user.id,
-                         '\U0001F3A5 Гарного перегляду!',
-                         reply_markup=hide_markup)
+        session_data = get_films_data(film)
+        send_session_data(chat_id, session_data)
 
     except Exception as e:
-        print(e)
+        log_uncorrect_messages(message.from_user, 'EXC: days step')
         hide_markup = types.ReplyKeyboardRemove()
         bot.reply_to(message, 'Упс..Щось пішло не так. Cпробуй ще раз (/start).', reply_markup=hide_markup)
+
+    log_request_messages(message.from_user, film)
+    hide_markup = types.ReplyKeyboardRemove()
+    bot.send_message(message.from_user.id,
+                     '\U0001F3A5 Гарного перегляду!',
+                     reply_markup=hide_markup)
 
 
 def parse_message(message):
@@ -206,6 +200,7 @@ def send_session_data(chat_id, data):
                      ' {}.\n{}'.format(title, description, sessions, url)
 
         bot.send_message(chat_id, formed_msg)
+        sleep(2)
 
 
 if __name__ == '__main__':
