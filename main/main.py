@@ -89,7 +89,7 @@ def process_days_step(message):
         data = get_films_data(film)
         for key, value in data.items():
             title = key
-            url = value.get('url')
+            url = '{}{}'.format(value.get('url'), '#imax_cinetech_2d_3d_4dx_week')
             sessions = ', '.join(value.get('sessions'))
             description = value.get('description')
 
