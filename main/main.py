@@ -23,7 +23,20 @@ class FilmSession:
         self.period = None
 
 
-@bot.message_handler(commands=['help', 'start'])
+@bot.message_handler(commands=['help'])
+def handle_help_command(message):
+    """Send help information in using the bot."""
+    help_text = 'Для того, щоб дізнатись про усі доступні сеанси про фільми ' \
+                'розпочни діалог командою /start. ' \
+                'Бот задасть тобі лише два питання:\n' \
+                '   \U00002753 У якому кінотеатрі?\n' \
+                '   \U00002753 У який день?\n' \
+                'Через декілька секунд ти отримаєш наступну інформацію: назву фільму, ' \
+                'години сеансів та силку, де ти зможеш придбати квиток.'
+    bot.send_message(message.from_user.id, help_text)
+
+
+@bot.message_handler(commands=['start'])
 def handle_start_command(message):
     """Show keyboard for cinema choise."""
     markup_cinemas = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
