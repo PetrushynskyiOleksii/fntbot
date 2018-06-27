@@ -10,6 +10,7 @@ def get_description(url):
     """Return description of film by parsing website=`url`."""
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
+
     desc_div = soup.find('div', class_='movie-page-block__desc')
     description = desc_div.find('p').text.strip()
 
@@ -34,6 +35,7 @@ def get_films_data(film):
     movies = {}
     response = requests.get(film.cinema)
     soup = BeautifulSoup(response.text, 'lxml')
+
     for movie in soup.find_all('movie'):
         start = movie.find('dt-start').text
         end = movie.find('dt-end').text
@@ -42,6 +44,7 @@ def get_films_data(film):
             title = movie.find('title').text
             url = movie.get('url')
             id = movie.get('id')
+            
             sessions = get_sessions(soup, film.period, id)
             if sessions:
                 description = get_description(url)

@@ -46,7 +46,6 @@ def process_cinema_step(message):
     """Create film object, update cinema field of created object."""
     film = FilmSession()
     days = []
-
     for i in range(1, 4):
         day = film.today + timedelta(days=1 + i)
         days.append(day.strftime('%d.%m, %a'))
@@ -90,7 +89,6 @@ def process_days_step(message):
         data = get_films_data(film)
         for key, value in data.items():
             title = key
-            # url = '{}{}'.format(value.get('url'), '#imax_cinetech_2d_3d_4dx_week')
             url = value.get('url')
             sessions = ', '.join(value.get('sessions'))
             description = value.get('description')
