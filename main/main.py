@@ -39,6 +39,7 @@ def handle_stop_command(message):
     """Hide keyboard."""
     hide_markup = types.ReplyKeyboardRemove()
     bot.send_message(message.from_user.id, 'Покєда.', reply_markup=hide_markup)
+    film_dict.pop(message.chat.id, None)
 
 
 def process_cinema_step(message):
@@ -85,16 +86,18 @@ def process_days_step(message):
                                    int(date_information[1]),
                                    int(date_information[0]))
 
-        bot.send_message(message.from_user.id, 'Це займе декілька секунд...')
+        bot.send_chat_action(chat_id, 'typing')
         data = get_films_data(film)
         for key, value in data.items():
             title = key
+            # url = '{}{}'.format(value.get('url'), '#imax_cinetech_2d_3d_4dx_week')
             url = value.get('url')
             sessions = ', '.join(value.get('sessions'))
             description = value.get('description')
 
             formed_msg = '\U0001F538{}.\n{}\n' \
-                         '\U0001F538Доступні сесії: {}.\n{}'.format(title, description, sessions, url)
+                         '\U0001F538Доступні сесії:' \
+                         ' {}.\n{}'.format(title, description, sessions, url)
 
             bot.send_message(message.from_user.id, formed_msg)
 
