@@ -58,7 +58,7 @@ def handle_stop_command(message):
     film_dict.pop(message.chat.id, None)
 
 
-@bot.message_handler(regexp=r'(?i)(kingcross|кінгкрос|форум|forum).+[0-9]{2}.[0-9]{2}')
+@bot.message_handler(regexp=r'(?i)(кк|kingcross|кінгкрос|форум|forum).+[0-9]{2}.[0-9]{2}')
 def handle_film_request(message):
     """Handle a request that is presented as a text message."""
     result = parse_message(message.text)
@@ -155,7 +155,7 @@ def parse_message(message):
     """Parse message, return dict with information about date and cinema or error message."""
     result = {'is_parsed': False, 'error_message': None, 'date': None, 'cinema': None}
     forum = re.findall(r'(?i)(форум|forum)', message)
-    kingcross = re.findall(r'(?i)(kingcross|кінгкрос|кк|KC|ашан)', message)
+    kingcross = re.findall(r'(?i)(kingcross|кінгкрос|кк)', message)
 
     if forum:
         result['cinema'] = 'Forum'
@@ -183,7 +183,6 @@ def parse_message(message):
             result['error_message'] = 'То в твоєму селі така дата?'
             return result
 
-        print(result.get('date'))
         if not first_day - timedelta(days=1) <= result.get('date') <= last_day:
             result['error_message'] = 'Можу дату інформацію лише ' \
                                       'в межах {} - {}'.format(first_day.strftime('%d.%m'),
