@@ -7,12 +7,14 @@ from datetime import datetime, timedelta
 
 from telebot import TeleBot, types
 
-from config import token, cinema_dict
+from config import token
 from parser import get_films_data
 from logger import log_request_messages, log_uncorrect_messages
 
 bot = TeleBot(token)
 film_dict = {}
+cinema_dict = {'Forum': 'http://planetakino.ua/lvov2/ua/showtimes/xml/',
+               'Kingcross': 'http://planeta-kino.com.ua/lvov/ua/showtimes/xml/'}
 
 
 class FilmSession:
