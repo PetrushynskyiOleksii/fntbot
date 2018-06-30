@@ -44,7 +44,7 @@ def get_films_data(film):
             title = movie.find('title').text
             url = movie.get('url')
             id = movie.get('id')
-            
+
             sessions = get_sessions(soup, film.period, id)
             if sessions:
                 description = get_description(url)
